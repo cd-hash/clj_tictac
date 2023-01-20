@@ -6,7 +6,8 @@
 
 (defn create-new-square
   [row col]
-  (when (and (<= lower-bound row (- upper-bound 1)) (<= lower-bound col (- upper-bound 1)))
+  (when (and (<= lower-bound row (- upper-bound 1))
+             (<= lower-bound col (- upper-bound 1)))
     {:row row :col col}))
 
 (defn create-squares
@@ -15,6 +16,12 @@
         col (range lower-bound upper-bound)]
     {:row row :col col}))
 
+(defn create-board
+  []
+  (into {} (for [square (create-squares)]
+             {square :empty})))
+
 (comment
   (create-new-square 1 1)
-  (create-squares))
+  (create-squares)
+  (create-board))
