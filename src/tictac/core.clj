@@ -1,5 +1,6 @@
 (ns tictac.core
-  (:require [tictac.square :as square]))
+  (:require [tictac.square :as square])
+  (:require [tictac.state :as state]))
 
 (defn check-player
   [player-mark]
@@ -27,6 +28,41 @@
       (place-mark game-board valid-location? validated-mark)
       (throw (ex-info "invalid-player" {:invalid-player player-mark})))))
 
+(defn get-col-vals
+  [board col]
+  (for [position (keys board)
+        :when (= (get position :col) col)]
+    (get board position)))
+
+(defn get-row-vals
+  [board row]
+  (for [position (keys board)
+        :when (= (get position :col) row)]
+    (get board position)))
+
+(defn get-diag-vals
+  [board]
+  (into [] (concat
+            (for [position (keys board)
+                  :when (= (get position :col) (get position :row))]
+              (get board position))
+            (for [position (keys board)
+                  :when (= (+ (get position :col) (get position :row)) 4)]
+              (get board position)))))
+
+(defn won-line?
+  [line player-mark]
+  (every? #(= player-mark %) line))
+
+(defn check-for-winner
+  [board player-mark]
+  (if (let [cols (map #(get-col-vals board %) (range 1 4))
+            rows (map #(get-row-vals board %) (range 1 4))
+            diagonals (into '() (get-diag-vals board))]
+        (some #(won-line? % player-mark) (concat cols rows diagonals)))
+    player-mark
+    false))
+
 (comment
   (try (check-player :r)
        (catch java.lang.IllegalArgumentException invalid-player
@@ -43,6 +79,8 @@
         (recur (dec count)))))
   (def board (square/create-board))
   (def board (place-mark board {:row 1 :col 1} :x))
-  (def board (place-mark board {:row 2 :col 2} :o))
+  (def board (place-mark board {:row 2 :col 1} :x))
+  (def board (place-mark board {:row 3 :col 1} :x))
   (def board (play-move board 3 3 :p))
+  (check-for-winner board :x)
   board)
