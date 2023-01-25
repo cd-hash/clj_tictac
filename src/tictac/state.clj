@@ -12,7 +12,7 @@
     :x :o
     :o :x))
 
-(defn state->new-state
+(defn current-state->new-state
   [current-state update-event]
   (assoc current-state
          :status (update-event :status)
@@ -22,5 +22,5 @@
 (comment
   (def new-game game-state)
   (def update-map {:status :playing :turn :x :board 1})
-  (def new-state (state->new-state new-game update-map))
-  )
+  (def new-state (current-state->new-state new-game update-map))
+  new-state)
