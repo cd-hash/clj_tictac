@@ -1,13 +1,13 @@
 (ns tictac.core
   (:require [tictac.square :as square])
-  (:require [tictac.state :as state]))
+  (:require [tictac.state :as state])
+  (:require [clojure.string :as str]))
 
 (defn check-player
   [player-mark]
   (case player-mark
     :x player-mark
-    :o player-mark
-    nil))
+    :o player-mark))
 
 (defn place-mark
   [game-board location player-mark]
@@ -64,19 +64,18 @@
     false))
 
 (comment
-  (try (check-player :r)
-       (catch java.lang.IllegalArgumentException invalid-player
-         (println "caught" invalid-player)))
-
   (loop [count 3]
     (let [caught-ex (try
-                      (check-player :x)
+                      (println "Choose :x's or :o's ")
+                      (check-player (keyword (str/trim (read-line))))
                       (catch java.lang.IllegalArgumentException invalid-player
                         (println "you gave an invalid-player" invalid-player)
                         (neg? count)))]
+      (println caught-ex count)
       (if caught-ex
         caught-ex
         (recur (dec count)))))
+
   (def board (square/create-board))
   (def board (place-mark board {:row 1 :col 3} :x))
   (def board (place-mark board {:row 2 :col 2} :x))
