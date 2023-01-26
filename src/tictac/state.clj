@@ -15,9 +15,9 @@
 (defn current-state->new-state
   [current-state update-event]
   (assoc current-state
-         :status (update-event :status)
-         :turn (switch-turn (update-event :turn))
-         :board (update-event :board)))
+         :status (:status update-event)
+         :turn (switch-turn (:turn current-state))
+         :board (:board update-event)))
 
 (comment
   (def new-game game-state)
