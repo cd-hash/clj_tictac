@@ -63,24 +63,41 @@
     player-mark
     false))
 
+(defn board-full?
+  [board]
+  (every? #(not= % :empty) (vals board)))
+
+(defn game-play
+  [state-map]
+  (cond
+    (check-for-winner (:board state-map) (:turn state-map))
+    (println "Congratulations " (:turn state-map) "you won")
+    (board-full? (:board state-map))
+    (println "Nobody won!")
+    (= :x (:turn state-map))
+    (recur (state/current-state->new-state state-map {:status :playing
+                                                      :board (play-move (:board state-map)
+                                                                        (+ (rand-int 3) 1)
+                                                                        (+ (rand-int 3) 1)
+                                                                        (:turn state-map))}))
+    (= :o (:turn state-map))
+    (recur (state/current-state->new-state state-map {:status :playing
+                                                      :board (play-move (:board state-map)
+                                                                        (+ (rand-int 3) 1)
+                                                                        (+ (rand-int 3) 1)
+                                                                        (:turn state-map))}))))
+
 (comment
   (loop [count 3]
-    (let [caught-ex (try
+    (let [player-mark (keyword (str/trim (read-line)))
+          caught-ex (try
                       (println "Choose :x's or :o's ")
-                      (check-player (keyword (str/trim (read-line))))
-                      (catch java.lang.IllegalArgumentException invalid-player
-                        (println "you gave an invalid-player" invalid-player)
+                      (check-player player-mark)
+                      (catch java.lang.IllegalArgumentException _
+                        (println "you gave an invalid-mark: " player-mark)
                         (neg? count)))]
-      (println caught-ex count)
       (if caught-ex
         caught-ex
         (recur (dec count)))))
-
-  (def board (square/create-board))
-  (def board (place-mark board {:row 1 :col 3} :x))
-  (def board (place-mark board {:row 2 :col 2} :x))
-  (def board (place-mark board {:row 3 :col 1} :x))
-  (def board (play-move board 3 3 :p))
-  (get-diag-vals board)
-  (check-for-winner board :x)
-  board)
+  (def initial-state (assoc state/game-state :turn :x))
+  (game-play initial-state))
