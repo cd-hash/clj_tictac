@@ -1,8 +1,7 @@
 (ns tictac.core
   (:require [tictac.square :as square])
   (:require [tictac.state :as state])
-  (:require [tictac.ui :as ui])
-  (:require [clojure.string :as str]))
+  (:require [tictac.ui :as ui]))
 
 (defn check-player
   [player-mark]
@@ -71,35 +70,36 @@
 (defn game-play
   [state-map]
   (cond
-    (check-for-winner (:board state-map) (:turn state-map))
-    (println "Congratulations " (:turn state-map) "you won")
+    (= :game-over (:status state-map)) state-map
+    (check-for-winner (:board state-map) (:prev-turn state-map))
+    (recur (state/current-state->end-state
+            state-map
+            {:status :game-over
+             :winner (:prev-turn state-map)}))
     (board-full? (:board state-map))
-    (println "Nobody won!")
+    (recur (state/current-state->end-state
+            state-map
+            {:status :game-over
+             :winner :tie}))
     (= :playing (:status state-map))
-    (recur (state/current-state->new-state state-map {:status :playing
-                                                      :board (play-move (:board state-map)
-                                                                        (+ (rand-int 3) 1)
-                                                                        (+ (rand-int 3) 1)
-                                                                        (:turn state-map))}))))
+    (recur (let [[row col] (ui/get-location)]
+             (state/current-state->new-state
+              state-map
+              {:status :playing
+               :board (play-move (:board state-map)
+                                 row col
+                                 (:curr-turn state-map))})))))
 
 (defn game-start
-  []
+  [& [_]]
   (let [initial-player (ui/get-player)]
     (-> state/game-state
-        (assoc :turn initial-player
-               :status :playing)
+        (assoc :curr-turn initial-player
+               :status :playing
+               :prev-turn (state/switch-turn initial-player))
         (game-play))))
 
 (comment
-  (loop [count 3]
-    (let [player-mark (keyword (str/trim (read-line)))
-          caught-ex (try
-                      (println "Choose :x's or :o's ")
-                      (check-player player-mark)
-                      (catch java.lang.IllegalArgumentException _
-                        (println "you gave an invalid-mark: " player-mark)
-                        (neg? count)))]
-      (if caught-ex
-        caught-ex
-        (recur (dec count)))))
+  (game-play (assoc state/game-state
+                    :status :game-over))
   (game-start))
