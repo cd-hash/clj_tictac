@@ -2,7 +2,8 @@
   (:require [tictac.square :as square]))
 
 (def game-state {:status :initial
-                 :turn :nil
+                 :prev-turn nil
+                 :curr-turn nil
                  :board (square/create-board)
                  :ui nil})
 
@@ -16,8 +17,17 @@
   [current-state update-event]
   (assoc current-state
          :status (:status update-event)
-         :turn (switch-turn (:turn current-state))
+         :prev-turn (:curr-turn current-state)
+         :curr-turn (switch-turn (:curr-turn current-state))
          :board (:board update-event)))
+
+(defn current-state->end-state
+  [current-state update-event]
+  (println update-event)
+  (assoc current-state
+         :status (:status update-event)
+         :turn nil
+         :winner (:winner update-event)))
 
 (comment
   (def new-game game-state)
