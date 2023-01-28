@@ -1,6 +1,7 @@
 (ns tictac.core
   (:require [tictac.square :as square])
   (:require [tictac.state :as state])
+  (:require [tictac.ui :as ui])
   (:require [clojure.string :as str]))
 
 (defn check-player
@@ -74,18 +75,20 @@
     (println "Congratulations " (:turn state-map) "you won")
     (board-full? (:board state-map))
     (println "Nobody won!")
-    (= :x (:turn state-map))
-    (recur (state/current-state->new-state state-map {:status :playing
-                                                      :board (play-move (:board state-map)
-                                                                        (+ (rand-int 3) 1)
-                                                                        (+ (rand-int 3) 1)
-                                                                        (:turn state-map))}))
-    (= :o (:turn state-map))
+    (= :playing (:status state-map))
     (recur (state/current-state->new-state state-map {:status :playing
                                                       :board (play-move (:board state-map)
                                                                         (+ (rand-int 3) 1)
                                                                         (+ (rand-int 3) 1)
                                                                         (:turn state-map))}))))
+
+(defn game-start
+  []
+  (let [initial-player (ui/get-player)]
+    (-> state/game-state
+        (assoc :turn initial-player
+               :status :playing)
+        (game-play))))
 
 (comment
   (loop [count 3]
@@ -99,5 +102,4 @@
       (if caught-ex
         caught-ex
         (recur (dec count)))))
-  (def initial-state (assoc state/game-state :turn :x))
-  (game-play initial-state))
+  (game-start))
