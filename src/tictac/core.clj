@@ -1,13 +1,13 @@
 (ns tictac.core
   (:require [tictac.square :as square])
-  (:require [tictac.state :as state]))
+  (:require [tictac.state :as state])
+  (:require [tictac.ui :as ui]))
 
 (defn check-player
   [player-mark]
   (case player-mark
     :x player-mark
-    :o player-mark
-    nil))
+    :o player-mark))
 
 (defn place-mark
   [game-board location player-mark]
@@ -63,25 +63,44 @@
     player-mark
     false))
 
-(comment
-  (try (check-player :r)
-       (catch java.lang.IllegalArgumentException invalid-player
-         (println "caught" invalid-player)))
+(defn board-full?
+  [board]
+  (every? #(not= % :empty) (vals board)))
 
-  (loop [count 3]
-    (let [caught-ex (try
-                      (check-player :x)
-                      (catch java.lang.IllegalArgumentException invalid-player
-                        (println "you gave an invalid-player" invalid-player)
-                        (neg? count)))]
-      (if caught-ex
-        caught-ex
-        (recur (dec count)))))
-  (def board (square/create-board))
-  (def board (place-mark board {:row 1 :col 3} :x))
-  (def board (place-mark board {:row 2 :col 2} :x))
-  (def board (place-mark board {:row 3 :col 1} :x))
-  (def board (play-move board 3 3 :p))
-  (get-diag-vals board)
-  (check-for-winner board :x)
-  board)
+(defn game-play
+  [state-map]
+  (cond
+    (= :game-over (:status state-map)) state-map
+    (check-for-winner (:board state-map) (:prev-turn state-map))
+    (recur (state/current-state->end-state
+            state-map
+            {:status :game-over
+             :winner (:prev-turn state-map)}))
+    (board-full? (:board state-map))
+    (recur (state/current-state->end-state
+            state-map
+            {:status :game-over
+             :winner :tie}))
+    (= :playing (:status state-map))
+    (recur (let [[row col] (ui/get-location)]
+             (state/current-state->new-state
+              state-map
+              {:status :playing
+               :board (play-move (:board state-map)
+                                 row col
+                                 (:curr-turn state-map))})))
+    :else (throw (ex-info "Invalid State" {:cause (:status state-map)}))))
+
+(defn game-start
+  [& [_]]
+  (let [initial-player (ui/get-player)]
+    (-> state/game-state
+        (assoc :curr-turn initial-player
+               :status :playing
+               :prev-turn (state/switch-turn initial-player))
+        (game-play))))
+
+(comment
+  (game-play (assoc state/game-state
+                    :status :game-over))
+  (game-start))
