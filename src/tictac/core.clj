@@ -88,7 +88,8 @@
               {:status :playing
                :board (play-move (:board state-map)
                                  row col
-                                 (:curr-turn state-map))})))))
+                                 (:curr-turn state-map))})))
+    :else (throw (ex-info "Invalid State" {:cause (:status state-map)}))))
 
 (defn game-start
   [& [_]]
