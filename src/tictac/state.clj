@@ -4,8 +4,7 @@
 (def game-state {:status :initial
                  :prev-turn nil
                  :curr-turn nil
-                 :board (square/create-board)
-                 :ui nil})
+                 :board (square/create-board)})
 
 (defn switch-turn
   [current-player]
@@ -27,6 +26,7 @@
   (assoc current-state
          :status (:status update-event)
          :turn nil
+         :final-board (:board current-state)
          :winner (:winner update-event)))
 
 (comment
