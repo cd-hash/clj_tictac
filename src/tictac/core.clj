@@ -70,7 +70,7 @@
 (defn game-play
   [state-map]
   (cond
-    (= :game-over (:status state-map)) state-map
+    (= :game-over (:status state-map)) (ui/print-end-state state-map)
     (check-for-winner (:board state-map) (:prev-turn state-map))
     (recur (state/current-state->end-state
             state-map
@@ -82,7 +82,7 @@
             {:status :game-over
              :winner :tie}))
     (= :playing (:status state-map))
-    (recur (let [[row col] (ui/get-location)]
+    (recur (let [[row col] (ui/get-location (:board state-map))]
              (state/current-state->new-state
               state-map
               {:status :playing
